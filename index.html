@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motorsport Certificate Generator</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Racing+Sans+One&family=Roboto:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            padding: 20px;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Control Panel */
+        .control-panel {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .control-panel h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #000;
+        }
+        
+        .section-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: #333;
+            margin: 20px 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #d4af37;
+            text-transform: uppercase;
+        }
+        
+        .style-buttons, .position-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .style-btn, .position-btn {
+            padding: 15px;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+        
+        .style-btn:hover, .position-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .style-btn.active, .position-btn.active {
+            border-color: #d4af37;
+            background: linear-gradient(135deg, #d4af37, #ffd700);
+        }
+        
+        .position-btn.pos-1.active { background: linear-gradient(135deg, #ffd700, #ffed4e); }
+        .position-btn.pos-2.active { background: linear-gradient(135deg, #c0c0c0, #e0e0e0); }
+        .position-btn.pos-3.active { background: linear-gradient(135deg, #cd7f32, #e5a567); }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group label {
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #d4af37;
+        }
+        
+        .form-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .logo-upload-area {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+        
+        .logo-preview {
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f9f9f9;
+            overflow: hidden;
+        }
+        
+        .logo-preview img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .print-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Orbitron', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .print-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76,175,80,0.4);
+        }
+        
+        /* Certificate - A4 Landscape: 297mm × 210mm */
+        .certificate-wrapper {
+            background: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            margin: 0 auto;
+        }
+        
+        #certificate {
+            width: 297mm;
+            height: 210mm;
+            background: white;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            padding: 15mm;
+        }
+        
+        /* Styles */
+        .cert-racing {
+            background: linear-gradient(145deg, #ffffff, #f8f8f8);
+            border: 8mm solid #d4af37;
+        }
+        
+        .cert-racing::before,
+        .cert-racing::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: repeating-linear-gradient(90deg, #000 0, #000 30px, #fff 30px, #fff 60px);
+        }
+        
+        .cert-racing::before { top: 0; }
+        .cert-racing::after { bottom: 0; }
+        
+        .cert-classic {
+            background: #ffffff;
+            border: 10mm double #2c3e50;
+        }
+        
+        .cert-modern {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 10mm;
+        }
+        
+        .cert-modern .cert-inner {
+            background: white;
+            border-radius: 15px;
+            padding: 12mm;
+            height: 100%;
+        }
+        
+        .cert-elegant {
+            background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+            border: 8mm solid #2c3e50;
+        }
+        
+        .cert-elegant::before {
+            content: '';
+            position: absolute;
+            top: 12mm;
+            left: 12mm;
+            right: 12mm;
+            bottom: 12mm;
+            border: 2px solid #d4af37;
+            pointer-events: none;
+        }
+        
+        /* Certificate Content - Fluid Layout */
+        .cert-inner {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .cert-logo {
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+        
+        .cert-logo img {
+            max-width: 80px;
+            max-height: 50px;
+            object-fit: contain;
+        }
+        
+        .cert-header {
+            text-align: center;
+            margin-bottom: 3mm;
+        }
+        
+        .cert-trophy {
+            font-size: 35px;
+            line-height: 1;
+        }
+        
+        .cert-title {
+            font-family: 'Racing Sans One', cursive;
+            font-size: 28px;
+            color: #000;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.1;
+            margin: 2mm 0;
+        }
+        
+        .cert-subtitle {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 16px;
+            color: #d4af37;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+        
+        .podium-display {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 70px;
+            margin: 3mm 0;
+            gap: 6px;
+        }
+        
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .podium-medal {
+            font-size: 18px;
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+        
+        .podium-block {
+            width: 60px;
+            border: 2px solid #b8860b;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .podium-block.second {
+            height: 50px;
+            background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+            border-color: #a0a0a0;
+        }
+        
+        .podium-block.first {
+            height: 65px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-color: #d4af37;
+        }
+        
+        .podium-block.third {
+            height: 40px;
+            background: linear-gradient(135deg, #cd7f32, #e5a567);
+            border-color: #b87333;
+        }
+        
+        .podium-num {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: #000;
+        }
+        
+        .position-banner {
+            padding: 8px;
+            border-radius: 6px;
+            text-align: center;
+            margin: 3mm 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+        
+        .position-banner.pos-1 {
+            background: linear-gradient(135deg, #ffd700, #d4af37);
+        }
+        
+        .position-banner.pos-2 {
+            background: linear-gradient(135deg, #c0c0c0, #a0a0a0);
+        }
+        
+        .position-banner.pos-3 {
+            background: linear-gradient(135deg, #cd7f32, #b87333);
+        }
+        
+        .banner-rank {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+            line-height: 1;
+        }
+        
+        .banner-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            margin-top: 2px;
+        }
+        
+        .award-section {
+            text-align: center;
+            margin: 3mm 0;
+        }
+        
+        .award-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+        
+        .student-name-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            color: #000;
+            font-weight: 700;
+            border-bottom: 2px solid #d4af37;
+            display: inline-block;
+            padding: 5px 25px;
+            min-width: 300px;
+        }
+        
+        .achievements {
+            background: #f9f9f9;
+            border-left: 4px solid #d4af37;
+            padding: 8px 12px;
+            margin: 3mm 0;
+            border-radius: 4px;
+            flex-grow: 1;
+        }
+        
+        .achievements-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            color: #000;
+        }
+        
+        .achievements-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .achievements-list li {
+            font-size: 11px;
+            color: #333;
+            padding: 2px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.4;
+        }
+        
+        .achievements-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #00cc00;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .cert-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 2px solid #d4af37;
+        }
+        
+        .signature-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .signature-line {
+            border-bottom: 2px solid #000;
+            min-width: 120px;
+            max-width: 160px;
+            margin: 6px auto;
+            padding: 4px 5px;
+            font-size: 12px;
+            color: #000;
+            font-weight: 700;
+            min-height: 22px;
+        }
+        
+        .signature-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .date-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .date-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: #000;
+            min-height: 22px;
+        }
+        
+        .racing-flags {
+            position: absolute;
+            font-size: 22px;
+            opacity: 0.08;
+        }
+        
+        .flag-tl { top: 50px; left: 25px; }
+        .flag-tr { top: 50px; right: 25px; }
+        .flag-bl { bottom: 70px; left: 25px; }
+        .flag-br { bottom: 70px; right: 25px; }
+        
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .control-panel {
+                display: none !important;
+            }
+            
+            .certificate-wrapper {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="control-panel">
+            <h1>🏁 Certificate Generator</h1>
+            
+            <div class="section-header">Style Selection</div>
+            <div class="style-buttons">
+                <button class="style-btn active" onclick="changeStyle('racing')">🏁 Racing</button>
+                <button class="style-btn" onclick="changeStyle('classic')">🎓 Classic</button>
+                <button class="style-btn" onclick="changeStyle('modern')">✨ Modern</button>
+                <button class="style-btn" onclick="changeStyle('elegant')">👔 Elegant</button>
+            </div>
+            
+            <div class="section-header">Position Selection</div>
+            <div class="position-buttons">
+                <button class="position-btn pos-1 active" onclick="changePosition(1)">P1 - 1st Place</button>
+                <button class="position-btn pos-2" onclick="changePosition(2)">P2 - 2nd Place</button>
+                <button class="position-btn pos-3" onclick="changePosition(3)">P3 - 3rd Place</button>
+            </div>
+            
+            <div class="section-header">Certificate Content</div>
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label>College Logo</label>
+                    <div class="logo-upload-area">
+                        <input type="file" id="logoUpload" accept="image/*" onchange="uploadLogo(event)">
+                        <div class="logo-preview" id="logoPreview">
+                            <span style="font-size:12px;color:#999;">No logo</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Certificate Title</label>
+                    <input type="text" id="certTitle" value="Podium Finisher" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Certificate Subtitle</label>
+                    <input type="text" id="certSubtitle" value="Certificate of Achievement" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <input type="text" id="studentName" placeholder="Enter student name" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Lecturer Name</label>
+                    <input type="text" id="lecturerName" placeholder="Enter lecturer name" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Department Head Name</label>
+                    <input type="text" id="deptHead" placeholder="Enter department head name" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="certDate" oninput="updateCertificate()">
+                </div>
+                
+                <div class="form-group full-width">
+                    <label>Achievement Description (one per line)</label>
+                    <textarea id="achievements" oninput="updateCertificate()">Completed all assignments and coursework on schedule
+Attended all workshop sessions with perfect punctuality
+Maintained consistent attendance throughout the course
+Demonstrated commitment to excellence and professional standards
+Crossed the finish line with outstanding dedication</textarea>
+                </div>
+            </div>
+            
+            <button class="print-button" onclick="printCertificate()">🖨️ Print Certificate</button>
+        </div>
+        
+        <div class="certificate-wrapper">
+            <div id="certificate" class="cert-racing">
+                <div class="racing-flags flag-tl">🏁</div>
+                <div class="racing-flags flag-tr">🏁</div>
+                <div class="racing-flags flag-bl">🏁</div>
+                <div class="racing-flags flag-br">🏁</div>
+                
+                <div class="cert-inner">
+                    <div class="cert-logo" id="certLogoContainer" style="display: none;">
+                        <img id="certLogo" src="" alt="Logo">
+                    </div>
+                    
+                    <div class="cert-header">
+                        <div class="cert-trophy">🏆</div>
+                        <div class="cert-title" id="displayTitle">Podium Finisher</div>
+                        <div class="cert-subtitle" id="displaySubtitle">Certificate of Achievement</div>
+                    </div>
+                    
+                    <div class="podium-display">
+                        <div class="podium-item">
+                            <div class="podium-medal">🥈</div>
+                            <div class="podium-block second">
+                                <div class="podium-num">2</div>
+                            </div>
+                        </div>
+                        <div class="podium-item">
+                            <div class="podium-medal">🥇</div>
+                            <div class="podium-block first">
+                                <div class="podium-num">1</div>
+                            </div>
+                        </div>
+                        <div class="podium-item">
+                            <div class="podium-medal">🥉</div>
+                            <div class="podium-block third">
+                                <div class="podium-num">3</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="position-banner pos-1" id="positionBanner">
+                        <div class="banner-rank" id="bannerRank">P1</div>
+                        <div class="banner-text" id="bannerText">First Place Performance</div>
+                    </div>
+                    
+                    <div class="award-section">
+                        <div class="award-label">This Certificate is Awarded To</div>
+                        <div class="student-name-display" id="displayStudentName">_______________________</div>
+                    </div>
+                    
+                    <div class="achievements">
+                        <div class="achievements-title">🏁 Championship Achievements</div>
+                        <ul class="achievements-list" id="displayAchievements">
+                            <li>Completed all assignments and coursework on schedule</li>
+                            <li>Attended all workshop sessions with perfect punctuality</li>
+                            <li>Maintained consistent attendance throughout the course</li>
+                            <li>Demonstrated commitment to excellence and professional standards</li>
+                            <li>Crossed the finish line with outstanding dedication</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="cert-footer">
+                        <div class="signature-box">
+                            <div class="signature-line" id="displayLecturer">_____________</div>
+                            <div class="signature-label">Lecturer Signature</div>
+                        </div>
+                        
+                        <div class="date-box">
+                            <div class="award-label" style="margin-bottom: 2px;">Date</div>
+                            <div class="date-display" id="displayDate">___________</div>
+                        </div>
+                        
+                        <div class="signature-box">
+                            <div class="signature-line" id="displayDeptHead">_____________</div>
+                            <div class="signature-label">Department Head</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPosition = 1;
+        let currentStyle = 'racing';
+        
+        document.getElementById('certDate').valueAsDate = new Date();
+        updateCertificate();
+        
+        function uploadLogo(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('certLogo').src = e.target.result;
+                    document.getElementById('certLogoContainer').style.display = 'block';
+                    document.getElementById('logoPreview').innerHTML = '<img src="' + e.target.result + '" style="max-width:100%;max-height:100%;">';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function changeStyle(style) {
+            currentStyle = style;
+            document.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('certificate').className = 'cert-' + style;
+        }
+        
+        function changePosition(pos) {
+            currentPosition = pos;
+            document.querySelectorAll('.position-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            updateCertificate();
+        }
+        
+        function updateCertificate() {
+            document.getElementById('displayTitle').textContent = 
+                document.getElementById('certTitle').value || 'Podium Finisher';
+            document.getElementById('displaySubtitle').textContent = 
+                document.getElementById('certSubtitle').value || 'Certificate of Achievement';
+            
+            const studentName = document.getElementById('studentName').value;
+            document.getElementById('displayStudentName').textContent = 
+                studentName || '_______________________';
+            
+            const lecturerName = document.getElementById('lecturerName').value;
+            document.getElementById('displayLecturer').textContent = 
+                lecturerName || '_____________';
+            
+            const deptHead = document.getElementById('deptHead').value;
+            document.getElementById('displayDeptHead').textContent = 
+                deptHead || '_____________';
+            
+            const dateInput = document.getElementById('certDate').value;
+            if (dateInput) {
+                const date = new Date(dateInput);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('displayDate').textContent = 
+                    date.toLocaleDateString('en-GB', options);
+            } else {
+                document.getElementById('displayDate').textContent = '___________';
+            }
+            
+            const achievementsText = document.getElementById('achievements').value;
+            const achievementsList = achievementsText.split('\n').filter(line => line.trim() !== '');
+            const displayList = document.getElementById('displayAchievements');
+            
+            if (achievementsList.length > 0) {
+                displayList.innerHTML = achievementsList.map(item => `<li>${item.trim()}</li>`).join('');
+            } else {
+                displayList.innerHTML = '<li>No achievements listed</li>';
+            }
+            
+            const banner = document.getElementById('positionBanner');
+            banner.className = 'position-banner pos-' + currentPosition;
+            
+            if (currentPosition === 1) {
+                document.getElementById('bannerRank').textContent = 'P1';
+                document.getElementById('bannerText').textContent = 'First Place Performance';
+            } else if (currentPosition === 2) {
+                document.getElementById('bannerRank').textContent = 'P2';
+                document.getElementById('bannerText').textContent = 'Second Place Performance';
+            } else {
+                document.getElementById('bannerRank').textContent = 'P3';
+                document.getElementById('bannerText').textContent = 'Third Place Performance';
+            }
+        }
+        
+        function printCertificate() {
+            window.print();
+        }
+    </script>
+</body>
+</html>
